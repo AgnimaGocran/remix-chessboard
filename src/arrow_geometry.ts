@@ -2,12 +2,10 @@ import type { Arrow, ArrowOptions } from './arrow.ts';
 import { getRelativeCoords } from './position_utils.ts';
 
 export interface ArrowGeometry {
-	/// Контур ствола — от центра исходной клетки до конца линии
-	/// (круглый торец дорисовывает полукруг, как на lichess).
+	/// Контур всей стрелки одним путём: круглый хвостовой торец, ствол и
+	/// треугольник-наконечник. Одна заливка — ствол нигде не лежит под
+	/// наконечником, поэтому не просвечивает при полупрозрачном цвете.
 	path: string;
-	/// Точки треугольника-наконечника.
-	headPoints: string;
-	width: number;
 	opacity: number;
 }
 
@@ -86,16 +84,30 @@ export function arrowGeometry(
 		x: lineEnd.x + ux * (HEAD_LENGTH - HEAD_REF) * width,
 		y: lineEnd.y + uy * (HEAD_LENGTH - HEAD_REF) * width,
 	};
-	const headPoints = [
-		`${baseCenter.x + nx * halfBase},${baseCenter.y + ny * halfBase}`,
-		`${tip.x},${tip.y}`,
-		`${baseCenter.x - nx * halfBase},${baseCenter.y - ny * halfBase}`,
+	const halfShaft = width / 2;
+	const tailLeft = { x: from.x + nx * halfShaft, y: from.y + ny * halfShaft };
+	const tailRight = { x: from.x - nx * halfShaft, y: from.y - ny * halfShaft };
+	const shaftLeft = {
+		x: baseCenter.x + nx * halfShaft,
+		y: baseCenter.y + ny * halfShaft,
+	};
+	const shaftRight = {
+		x: baseCenter.x - nx * halfShaft,
+		y: baseCenter.y - ny * halfShaft,
+	};
+	const path = [
+		`M${tailLeft.x},${tailLeft.y}`,
+		`L${shaftLeft.x},${shaftLeft.y}`,
+		`L${baseCenter.x + nx * halfBase},${baseCenter.y + ny * halfBase}`,
+		`L${tip.x},${tip.y}`,
+		`L${baseCenter.x - nx * halfBase},${baseCenter.y - ny * halfBase}`,
+		`L${shaftRight.x},${shaftRight.y}`,
+		`L${tailRight.x},${tailRight.y}`,
+		`A${halfShaft} ${halfShaft} 0 0 0 ${tailLeft.x},${tailLeft.y}`,
+		'Z',
 	].join(' ');
-	const path = `M${from.x},${from.y} L${lineEnd.x},${lineEnd.y}`;
 	return {
 		path,
-		headPoints,
-		width,
 		opacity: arrowOptions.opacity * (isActive ? ACTIVE_OPACITY : 1),
 	};
 }

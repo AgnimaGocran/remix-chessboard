@@ -27,18 +27,11 @@ export function ArrowPath(handle: Handle<ArrowPathProps>) {
 			props.isActive,
 			props.viewBoxWidth,
 		);
-		/// Ствол и наконечник в одной группе с общей прозрачностью:
-		/// основание треугольника смыкается с торцом ствола,
-		/// наложения (и «квадрат» внутри наконечника) нет.
+		/// Один залитый контур: ствол не накладывается на наконечник,
+		/// поэтому при полупрозрачном цвете внутри наконечника ничего
+		/// не просвечивает.
 		return <g opacity={geometry.opacity}>
-			<path
-				d={geometry.path}
-				fill="none"
-				stroke={arrow.color}
-				strokeWidth={geometry.width}
-				strokeLinecap="round"
-			/>
-			<polygon points={geometry.headPoints} fill={arrow.color} />
+			<path d={geometry.path} fill={arrow.color} />
 		</g>;
 	};
 }
